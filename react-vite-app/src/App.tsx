@@ -1,62 +1,79 @@
-// src/App.tsx in Vite project
+// src/App.tsx
+import React, { useEffect, useState } from 'react';
 
-import React, { useEffect, useState } from "react";
-import Button from "./components/Button";
+type PaymentWidgetProps = {
+  onClickCallback: (data: { paymentMethod: string; acceptedTerms: boolean }) => void;
+};
 
-// Define the type for remote components with or without props
-type RemoteComponentWithCallback = React.ComponentType<{ onClickCallback: () => void }>;
-type RemoteComponentWithoutProps = React.ComponentType<{}>;
 
 declare global {
   interface Window {
     ExternalApp?: {
-      Button1?: RemoteComponentWithCallback;
-      Test2?: RemoteComponentWithoutProps;
+      PaymentWidget?: React.ComponentType<PaymentWidgetProps>;
+
     };
   }
 }
 
-function App() {
-  const [RemoteButton, setRemoteButton] = useState<RemoteComponentWithCallback | null>(null);
-  const [Test2, setTest2] = useState<RemoteComponentWithoutProps | null>(null);
+const App: React.FC = () => {
+  const [Remote, setRemote] = useState<React.ComponentType<PaymentWidgetProps> | null>(null);
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
 
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "http://localhost:3000/bundle.js"; // Webpack remote bundle
-    script.onload = () => {
-      if (window.ExternalApp) {
-        if (window.ExternalApp.Button1) {
-          setRemoteButton(() => window.ExternalApp!.Button1!);
-        }
-        if (window.ExternalApp.Test2) {
-          setTest2(() => window.ExternalApp!.Test2!);
-        }
+    const s = document.createElement('script');
+    s.src = 'http://localhost:3000/bundle.js';
+    s.onload = () => {
+      if (window.ExternalApp?.PaymentWidget) {
+        setRemote(() => window.ExternalApp?.PaymentWidget!);
+
       } else {
-        console.error("ExternalApp not found on window");
+        console.error('PaymentWidget not found on window.ExternalApp');
       }
     };
-    document.body.appendChild(script);
+    s.onerror = () => console.error('Failed to load remote bundle');
+    document.body.appendChild(s);
+    return () => void document.body.removeChild(s);
   }, []);
 
-  const handleClick = () => {
-    alert("Callback triggered from Vite host!");
-  };
-
   return (
-    <div>
-      <h1>Vite Host</h1>
-      
-      {RemoteButton ? (
-        <RemoteButton onClickCallback={handleClick} />
+    <div >
+      <h2 >User Details</h2>
+      <div >
+        <label >First Name:</label>
+        <input
+          type="text"
+
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+        />
+      </div>
+      <div >
+        <label >Last Name:</label>
+        <input
+          type="text"
+
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+        />
+      </div>
+
+      <h2 >Payment Widget</h2>
+      {Remote ? (
+        <Remote
+          onClickCallback={(data) => {
+            console.log('Form Data:', { firstName, lastName });
+            console.log('Payment Data:', data);
+          }}
+        />
       ) : (
-        <p>Loading remote button...</p>
+        <p>Loading remote widget…</p>
       )}
 
-      <Button />
 
-      {Test2 && <Test2 />}
     </div>
   );
-}
+};
 
 export default App;

@@ -2,16 +2,16 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  mode: 'production', // Use 'development' during development
-  entry: './src/ExternalApp.tsx',  // Entry point where components are exposed
+
+  entry: './src/index.ts',  // Entry point where components are exposed
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
     publicPath: '/',
     library: {
-      name: 'ExternalApp',
-      type: 'umd',
-      export: 'default',
+      name: 'ExternalApp', // The name to expose the components
+      type: 'umd', // UMD (Universal Module Definition) to support various environments
+      export: 'default', // Expose the default export
     },
     globalObject: 'this', // Ensures compatibility in both browser and Node.js environments
   },
@@ -42,12 +42,7 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: './public/index.html',
-    }),
-  ],
-  // Add externals to avoid bundling React and ReactDOM
+
   externals: {
     react: 'React',
     'react-dom': 'ReactDOM',
